@@ -1,0 +1,36 @@
+from pwn import *
+import os
+
+os.environ["SHELL"] = '/bin/sh'
+
+context.binary = elf = ELF('./write4')
+context.arch = 'amd64'
+context.os = 'linux'
+context.terminal = ['st', '--', '/bin/sh', '-c']
+
+find_offset = cyclic(200)
+offset = 0
+
+#main_addr = elf.symbols['main']
+#print_file = elf.plt['print_file']
+
+payload = flat(
+        b'a' * 40,
+        
+        )
+
+gdb_script = '''
+            break pwn_me
+            continue
+        '''
+
+io = gdb.debug(elf.path, gdbscript=gdb_script)
+pause()
+
+print(io.recv().decode())
+
+io.sendline(find_offset)
+
+print(io.recv().decode())
+
+pause()
